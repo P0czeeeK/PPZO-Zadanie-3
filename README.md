@@ -6,3 +6,6 @@
 ## Relacje:
 
 ## Zasady OOP:
+
+### Login: admin
+### Hasło: admin
