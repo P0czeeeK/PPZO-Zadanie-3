@@ -1,3 +1,5 @@
+import datetime as dt
+
 class Item:
 
     def __init__(self, id, title, author):
@@ -5,14 +7,14 @@ class Item:
         self.title = title
         self.author = author
 
-    def borrow():
+    def borrow(self):
         pass
 
-    def return_item():
+    def return_item(self):
         pass
 
 class Book(Item):
-    def __init__(self, id, title, author, is_available):
+    def __init__(self, id, title, author, is_available = True):
         super().__init__(id, title, author)
         self._is_available = is_available
 
@@ -29,9 +31,13 @@ class EBook(Item):
         self.download_limit = download_limit
 
     def borrow(self):
-        self.download_limit - 1
+        if self.download_limit <= 0:
+            return False
+        
+        if self.download_limit > 0:
+            self.download_limit -= 1
 
-    def return_item():
+    def return_item(self):
         pass
 
 class User:
@@ -40,17 +46,17 @@ class User:
         self.name = name
         self._borrowed_items = []
 
-    def borrow_item(item):
+    def borrow_item(self, item):
         pass
 
-    def return_item(item):
+    def return_item(self, item):
         pass
 
-    def list_loand(self):
+    def list_loans(self):
         return self._borrowed_items
     
 class Loan:
-    def __init__(self, loan_id, user, item, loan_date, return_date):
+    def __init__(self, loan_id, user, item, loan_date, return_date = None):
         self.loan_id = loan_id
         self.user = user
         self.item = item
@@ -58,28 +64,28 @@ class Loan:
         self.return_date = return_date
 
     def close(self):
-        del self.return_date
+        self.return_date = dt.datetime.now()
 
 class Library:
-    def __init__(self, user_list, book_list, loan_list):
-        self.user_list = user_list
-        self.book_list = book_list
-        self.loan_list = loan_list
+    def __init__(self, user_list = None, book_list = None, loan_list = None):
+        self.user_list = user_list or []
+        self.book_list = book_list or []
+        self.loan_list = loan_list or []
 
-    def add_user(user):
+    def add_user(self, user):
         pass
 
-    def add_item(item):
+    def add_item(self, item):
         pass
 
-    def borrow_item(user_id, item_id):
+    def borrow_item(self, user_id, item_id):
         pass
 
-    def return_item(user_id, item_id):
+    def return_item(self, user_id, item_id):
         pass
 
-    def find_item_by_id(id):
+    def find_item_by_id(self, id):
         pass
 
-    def find_user_by_id(id):
+    def find_user_by_id(self, id):
         pass
