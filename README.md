@@ -1,1 +1,8 @@
-#Biblioteka
+# Biblioteka
+## Opis:
+
+## Klasy:
+
+## Relacje:
+
+## Zasady OOP:
