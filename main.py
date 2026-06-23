@@ -33,3 +33,53 @@ class EBook(Item):
 
     def return_item():
         pass
+
+class User:
+    def __init__(self, id, name):
+        self.id = id
+        self.name = name
+        self._borrowed_items = []
+
+    def borrow_item(item):
+        pass
+
+    def return_item(item):
+        pass
+
+    def list_loand(self):
+        return self._borrowed_items
+    
+class Loan:
+    def __init__(self, loan_id, user, item, loan_date, return_date):
+        self.loan_id = loan_id
+        self.user = user
+        self.item = item
+        self.loan_date = loan_date
+        self.return_date = return_date
+
+    def close(self):
+        del self.return_date
+
+class Library:
+    def __init__(self, user_list, book_list, loan_list):
+        self.user_list = user_list
+        self.book_list = book_list
+        self.loan_list = loan_list
+
+    def add_user(user):
+        pass
+
+    def add_item(item):
+        pass
+
+    def borrow_item(user_id, item_id):
+        pass
+
+    def return_item(user_id, item_id):
+        pass
+
+    def find_item_by_id(id):
+        pass
+
+    def find_user_by_id(id):
+        pass
