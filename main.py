@@ -20,6 +20,9 @@ class Book(Item):
 
     def __str__(self):
         return f"Id {self.id}, title {self.title}, author {self.author}, is available {self._is_available}"
+    
+    def user_view(self):
+        return f"Tytuł: {self.title}, Autor: {self.author}"
 
     def borrow(self):
         self._is_available = False
@@ -120,7 +123,7 @@ def admin(name, password):
         print("Witaj adminie!")
         while True:
             print("Co chciałbyś zrobić?")
-            x = int(input("1 - Dodaj użytkownika\n2 - Dodaj książkę\n3 - Dodaj ebooka\n4 - Wypożyczyć książkę użytkownikowi\n5 - Użytkownik zwrócił książkę\n6 - Wypisz listę użytkowników\n7 - Wypisz listę książek\n0 - Wyloguj\n"))
+            x = int(input("1 - Dodaj użytkownika\n2 - Dodaj książkę\n3 - Dodaj ebooka\n4 - Wypożyczyć książkę użytkownikowi\n5 - Użytkownik zwrócił książkę\n6 - Wypisz listę użytkowników\n7 - Wypisz listę książek\n8 - Wyszukaj użytkownika po imieniu\n9 - Wyszukaj książkę po nazwie\n0 - Wyloguj\n"))
             match x:
                 case 1:
                     user_name = input("Podaj imie użytkownika\n")
@@ -143,6 +146,10 @@ def admin(name, password):
                     library.check_user_list()
                 case 7:
                     library.check_book_list()
+                case 8:
+                    pass
+                case 9:
+                    pass
                 case 0:
                     break
                 case _:
@@ -150,7 +157,8 @@ def admin(name, password):
 
 def guest():
     print("Witaj gościu, aktualne książki które można wypożyczyć: ")
-    print(Library.available_books())
+    for book in library.book_list:
+        print(book.user_view())
 
 def main():
     print("*******************Biblioteka*******************")
