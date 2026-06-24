@@ -45,10 +45,8 @@ class EBook(Item):
     def borrow(self):
         if self.download_limit <= 0:
             return False
-        
-        if self.download_limit > 0:
-            self.download_limit -= 1
-            return True
+        self.download_limit -= 1
+        return True
 
     def return_item(self):
         pass
@@ -168,20 +166,21 @@ class Library:
             print("Nie znaleziono książki")
             return False
         
-        if not hasattr(book, "file_size"):
-            if book._is_available:
-                print("Książka nie jest wypożyczona")
-                return False
-            book.return_item()
-        else:
+        if book not in user._borrowed_items:
+            print("Ten użytkownik nie wypożyczył tej książki")
+            return False
+      
+        if hasattr(book, "file_size"):
             book.download_limit += 1
+        else:
+            book.return_item()
 
         for i in self.loan_list:
             if i.user == user and i.item == book and i.return_date is None:
                 i.close()
                 break
 
-        user._borrowed_items_remove(book)
+        user._borrowed_items.remove(book)
         print("Zwrócono książkę")
         return True
 
