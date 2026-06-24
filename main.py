@@ -36,12 +36,19 @@ class EBook(Item):
         self.file_size = file_size
         self.download_limit = download_limit
 
+    def __str__(self):
+        return f"Id {self.id}, Title {self.title}, Author: {self.author}, File size {self.file_size}, Download limit {self.download_limit}"
+    
+    def user_view(self):
+        return f"Tytuł: {self.title}, Autor: {self.author}, File size {self.file_size}"
+
     def borrow(self):
         if self.download_limit <= 0:
             return False
         
         if self.download_limit > 0:
             self.download_limit -= 1
+            return True
 
     def return_item(self):
         pass
@@ -53,7 +60,13 @@ class User:
         self._borrowed_items = []
 
     def __str__(self):
-        return f"Id {self.id}, imie {self.name}"
+        if not self._borrowed_items:
+            return f"Id {self.id}, imie {self.name}"
+        else:
+            titles = ", ".join(item.title for item in self._borrowed_items)
+            return f"Id {self.id}, imie {self.name}, książki: {titles}"
+
+
 
     def borrow_item(self, item):
         pass
@@ -71,6 +84,9 @@ class Loan:
         self.item = item
         self.loan_date = loan_date
         self.return_date = return_date
+
+    def __str__(self):
+        return f"Id {self.loan_id}, User {self.user.name}, item {self.item.title}, loan date {self.loan_date}, return date {self.return_date}"
 
     def close(self):
         self.return_date = dt.datetime.now()
@@ -95,6 +111,10 @@ class Library:
         for i in self.book_list:
             print(i)
 
+    def check_loan_list(self):
+        for i in self.loan_list:
+            print(i)
+
     def available_books(self):
         return self.book_list
 
@@ -105,25 +125,99 @@ class Library:
         self.book_list.append(item)
 
     def borrow_item(self, user_id, item_id):
-        pass
+        book = self.find_book_by_id(item_id)     
+        user = self.find_user_by_id(user_id)
+
+        if(user is None):
+            print("Nie znaleziono użytkownika")
+            return False
+
+        if(book is None):
+            print("Nie znaleziono książki")
+            return False
+        
+        if not hasattr(book, "file_size"):
+            if not book._is_available:
+                print("Książka jest już wypożyczona")
+                return False
+            book.borrow()
+
+        else:
+            if(book.download_limit <=0 ):
+                print("Ebook nie ma już dostępnych pobrań")
+                return False
+            book.borrow()
+
+        loan_id = len(self.loan_list)
+        loan = Loan(loan_id, user, book, dt.datetime.now())
+        self.loan_list.append(loan)
+
+        user._borrowed_items.append(book)
+        print("Wypożyczono pomyślnie")
+        return True
 
     def return_item(self, user_id, item_id):
-        pass
+        book = self.find_book_by_id(item_id)     
+        user = self.find_user_by_id(user_id)
 
-    def find_item_by_id(self, id):
-        pass
+        if(user is None):
+            print("Nie znaleziono użytkownika")
+            return False
+
+        if(book is None):
+            print("Nie znaleziono książki")
+            return False
+        
+        if not hasattr(book, "file_size"):
+            if book._is_available:
+                print("Książka nie jest wypożyczona")
+                return False
+            book.return_item()
+        else:
+            book.download_limit += 1
+
+        for i in self.loan_list:
+            if i.user == user and i.item == book and i.return_date is None:
+                i.close()
+                break
+
+        user._borrowed_items_remove(book)
+        print("Zwrócono książkę")
+        return True
+
+    def find_book_by_id(self, id):
+        for i in self.book_list:
+            if(id == i.id):
+                return i
 
     def find_user_by_id(self, id):
-        pass
+        for i in self.user_list:
+            if(id == i.id):
+                return i
+
+
+    def find_book_by_name(self, name):
+        results = []
+        for i in self.book_list:
+            if(name.lower() in i.title.lower()):
+                results.append(i)
+        return results
+
+    def find_user_by_name(self, name):
+        results = []
+        for i in self.user_list:
+            if(name.lower() in i.name.lower()):
+                results.append(i)
+        return results
 
 def admin(name, password):
-    if(name != "admin" and password != "admin"):
+    if(name.lower() != "admin" and password != "admin"):
         print("Błąd! Użytkownik nieznany")
     else:
         print("Witaj adminie!")
         while True:
             print("Co chciałbyś zrobić?")
-            x = int(input("1 - Dodaj użytkownika\n2 - Dodaj książkę\n3 - Dodaj ebooka\n4 - Wypożyczyć książkę użytkownikowi\n5 - Użytkownik zwrócił książkę\n6 - Wypisz listę użytkowników\n7 - Wypisz listę książek\n8 - Wyszukaj użytkownika po imieniu\n9 - Wyszukaj książkę po nazwie\n0 - Wyloguj\n"))
+            x = int(input("1 - Dodaj użytkownika\n2 - Dodaj książkę\n3 - Dodaj ebooka\n4 - Wypożyczyć książkę użytkownikowi\n5 - Użytkownik zwrócił książkę\n6 - Wypisz listę użytkowników\n7 - Wypisz listę książek\n8 - Wyszukaj użytkownika po imieniu\n9 - Wyszukaj książkę po nazwie\n10 - Wypisz listę wypożyczeń\n0 - Wyloguj\n"))
             match x:
                 case 1:
                     user_name = input("Podaj imie użytkownika\n")
@@ -137,20 +231,47 @@ def admin(name, password):
                     book = Book(id, book_title, book_author)
                     library.add_book(book)
                 case 3:
-                    pass
+                    ebook_author = input("Podaj autora ebooka\n")
+                    ebook_title = input("Podaj tytuł ebooka\n")
+                    ebook_file_size = input("Podaj rozmiar ebooka\n")
+                    ebook_download_limit = int(input("Podaj ilość dostępnych ebooków\n"))
+                    id = library.what_book_id()
+                    ebook = EBook(id, ebook_title, ebook_author, ebook_file_size, ebook_download_limit)
+                    library.add_book(ebook)
                 case 4:
-                    pass
+                    user_id = int(input("Podaj id użytkownika który wypożycza książkę\n"))
+                    book_id = int(input("Podaj id książki którą wypożycza\n"))
+                    library.borrow_item(user_id, book_id)
                 case 5:
-                    pass
+                    user_id = int(input("Podaj id użytkownika który oddaje książkę\n"))
+                    book_id = int(input("Podaj id książki którą oddaje\n"))
+                    library.return_item(user_id, book_id)
                 case 6:
                     library.check_user_list()
                 case 7:
                     library.check_book_list()
+                case 10:
+                    library.check_loan_list()
                 case 8:
-                    pass
+                    user_name = input("Podaj imię które chcesz wyszukać\n")
+                    results = library.find_user_by_name(user_name)
+
+                    if results:
+                        for i in results:
+                            print(i)
+                    else:
+                        print("Nie znaleziono użytkownika o takim imieniu")
                 case 9:
-                    pass
+                    book_name = input("Podaj tutył który chcesz wyszukać\n")
+                    results = library.find_book_by_name(book_name)
+
+                    if results:
+                        for i in results:
+                            print(i)
+                    else:
+                        print("Nie znaleziono książki o takim tytule")
                 case 0:
+                    print("\nWylogowano")
                     break
                 case _:
                     print("Nie ma takiego wyboru")
@@ -158,7 +279,14 @@ def admin(name, password):
 def guest():
     print("Witaj gościu, aktualne książki które można wypożyczyć: ")
     for book in library.book_list:
-        print(book.user_view())
+        if not hasattr(book, "file_size"):
+            if(book._is_available == True):
+                print(book.user_view())
+    print("Aktualne Ebooki które można wypożyczyć: ")
+    for book in library.book_list:
+        if hasattr(book, "file_size"):
+            if(book.download_limit > 0):
+                print(book.user_view())
 
 def main():
     print("*******************Biblioteka*******************")
